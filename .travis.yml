@@ -1,0 +1,22 @@
+sudo:  required
+services:
+  - docker
+
+before_install:
+  - docker build -t techsivam/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run techsivam/react-test npm run test -- --coverage
+
+after_success:
+  - docker build -t techsivam/multi-client ./client
+  - docker build -t techsivam/multi-nginx ./nginx
+  - docker build -t techsivam/multi-server ./server
+  - docker build -t techsivam/multi-worker ./worker
+  #login to the docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push to docker hub
+  - docker push techsivam/multi-client
+  - docker push techsivam/multi-nginx
+  - docker push techsivam/multi-server
+  - docker push techsivam/multi-worker
